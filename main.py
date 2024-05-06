@@ -1,4 +1,4 @@
-from flask import Flask, send_file
+from flask import Flask, send_file,request,jsonify
 import schemdraw
 from schemdraw.flow import *
 
@@ -9,11 +9,50 @@ app = Flask(__name__)
 
 @app.route("/")
 def welcome():
-    return 'This is vercel speaking with python'
+    return 'This is your flask application hosted'
     
-@app.route("/hello")
-def hello():
-    return 'Hellow my friend'
+
+
+@app.route('/custom_graph',methods=['POST'])
+def custom_graph():
+    data = request.json
+    if data.get("start") is None:
+        return "No start or End of the workflow was given"
+    
+    with schemdraw.Drawing() as d:
+        d += Start().label("Start")
+        d += Arrow().down(d.unit / 2)
+
+        for step, value in data["steps"].items():
+            if step == "Decision":
+                if len(value) != 3:
+                    return "Invalid decision format. It should be a list with two elements.", 400
+                
+                d+= (decision := Decision(w = 5, h= 5,S = "True",E = "False").label(value[0]))
+                d += Arrow().down(d.unit / 2)
+                d+= (true := Box(w = 5).label(value[1]))
+                d += Arrow().down(d.unit / 2)
+                d+= Arrow().right(d.unit).at(decision.E)
+               
+                #false box and then add 1 arrow down and then 1 to the left
+                d+= (false := Box(w = 5).label(value[2]))
+                d+= Arrow().down(d.unit*2.5).at(false.S)
+                d+= Arrow().left(d.unit*2.15)
+               
+                  
+               
+            else:
+                d += Box(w=4).label(value)
+                d+= Arrow().down(d.unit)
+                
+            
+
+        d += Ellipse().label("End")
+        image_bytes = d.get_imagedata('svg')
+
+    return image_bytes, {"Content-type": "image/svg+xml"}
+    #return jsonify(data)
+
 @app.route('/graphs')
 def func_factory():
     with schemdraw.Drawing(show=False) as d:
