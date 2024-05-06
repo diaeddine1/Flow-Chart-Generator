@@ -6,6 +6,11 @@ from schemdraw.flow import *
 
 app = Flask(__name__)
 
+
+@app.route("/")
+def welcome():
+    return 'This is vercel speaking with python'
+    
 @app.route("/hello")
 def hello():
     return 'Hellow my friend'
