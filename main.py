@@ -57,4 +57,4 @@ def func_factory():
     return image_bytes, 200, {'Content-Type': 'image/svg+xml'}
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0',port=5000,debug=True)
